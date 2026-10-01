@@ -1,0 +1,38 @@
+# Paste into the Appwrite Console Terminal (project: longitude)
+
+# --- 1. Database + tables (permissions: anyone can book/read, only label "admin" can change) ---
+appwrite tables-db create --database-id logistics --name Logistics
+appwrite tables-db create-table --database-id logistics --table-id shipments --name Shipments --permissions 'create("any")' 'read("any")' 'update("label:admin")' 'delete("label:admin")'
+appwrite tables-db create-table --database-id logistics --table-id events --name Events --permissions 'read("any")' 'create("label:admin")' 'update("label:admin")' 'delete("label:admin")'
+
+# --- 2. Shipments columns ---
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key trackingId --size 32 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key mode --size 8 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key origin --size 32 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key destination --size 32 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key originName --size 80 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key destName --size 80 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key cargoType --size 60 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key description --size 1000 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key senderName --size 120 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key senderEmail --size 160 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key receiverName --size 120 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key receiverPhone --size 40 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id shipments --key status --size 40 --required true
+appwrite tables-db create-float-column --database-id logistics --table-id shipments --key weightKg --required true
+appwrite tables-db create-float-column --database-id logistics --table-id shipments --key priceUsd --required true
+appwrite tables-db create-integer-column --database-id logistics --table-id shipments --key etaDays --required true
+
+# --- 3. Events columns ---
+appwrite tables-db create-string-column --database-id logistics --table-id events --key trackingId --size 32 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id events --key status --size 40 --required true
+appwrite tables-db create-string-column --database-id logistics --table-id events --key location --size 120 --required false
+appwrite tables-db create-string-column --database-id logistics --table-id events --key note --size 240 --required false
+
+# --- 4. WAIT ~15 seconds for columns to finish building, then run the two index commands ---
+appwrite tables-db create-index --database-id logistics --table-id shipments --key idx_tracking --type unique --columns trackingId
+appwrite tables-db create-index --database-id logistics --table-id events --key idx_tracking --type key --columns trackingId
+
+# --- 5. Staff login (change EMAIL and PASSWORD; password needs 8+ characters) ---
+appwrite users create --user-id admin1 --email EMAIL --password PASSWORD
+appwrite users update-labels --user-id admin1 --labels admin
