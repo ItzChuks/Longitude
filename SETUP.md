@@ -58,8 +58,12 @@ Permissions: read `any`; create, update, delete `label:admin`.
 
 ## Files
 ```
-index.html        public site: quote planner, services, tracking, booking
-admin.html        staff dashboard: list, filter, post status updates, delete
+index.html        landing page
+book.html         quote planner, tracking, booking
+air.html sea.html road.html  service pages
+images/           put hero.jpg air.jpg sea.jpg road.jpg containers.jpg here
+admin.html        staff sign in (redirects to dashboard.html)
+dashboard.html    staff dashboard: list, filter, add shipment (generates ID), post updates, delete
 css/styles.css    custom styles
 js/config.js      Appwrite settings
 js/data.js        cities, pricing rules, route-chart renderer

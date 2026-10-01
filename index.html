@@ -1,181 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Longitude — International freight by road, sea and air</title>
-  <meta name="description" content="Quote, book and track international freight by road, sea and air to 18 cities.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = { theme: { extend: {
-      colors: { ink: '#12263A', chart: '#E6ECEF', sea: '#0E7C86', air: '#F0562B', road: '#B98700' },
-      fontFamily: { display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'] }
-    } } };
-  </script>
-  <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-  <div id="demoBanner" hidden class="bg-ink px-5 py-2 text-center text-sm text-white">
-    Demo mode: bookings are saved in this browser only. Add your Appwrite project ID in <code>js/config.js</code> to go live.
-  </div>
-
-  <header class="mx-auto flex max-w-7xl items-center justify-between px-5 py-5">
-    <a href="#top" class="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight" id="top">
-      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="13" stroke="#12263A" stroke-width="2"/><ellipse cx="15" cy="15" rx="5.5" ry="13" stroke="#12263A" stroke-width="2"/><path d="M2 15h26" stroke="#F0562B" stroke-width="2"/></svg>
-      Longitude
-    </a>
-    <nav class="flex items-center gap-4 text-sm font-medium sm:gap-7" aria-label="Main">
-      <a href="#modes" class="hidden hover:underline sm:inline">Services</a>
-      <a href="#track" class="hover:underline">Track</a>
-      <a href="#book" class="hidden hover:underline sm:inline">Book</a>
-      <a href="#quote" class="btn !px-4 !py-2 text-sm">Get a quote</a>
-    </nav>
-  </header>
-
-  <main>
-    <!-- Hero: route planner -->
-    <section id="quote" class="mx-auto max-w-7xl px-5 pb-16 pt-8 sm:pt-12">
-      <h1 class="max-w-4xl text-4xl font-extrabold leading-[0.97] tracking-tight sm:text-6xl lg:text-7xl">One waybill. Road, sea and air to 18 cities.</h1>
-      <p class="mt-5 max-w-xl text-lg text-ink/75">Price a shipment in seconds, book it online, and follow every handover until it is signed for.</p>
-
-      <div class="mt-10 grid gap-4 lg:grid-cols-[400px_1fr]">
-        <form id="planner" class="rounded-3xl border border-ink/10 bg-white p-5 sm:p-6" autocomplete="off">
-          <div class="grid grid-cols-[1fr_auto_1fr] items-end gap-2">
-            <div><label class="label" for="from">From</label><select id="from" class="field"></select></div>
-            <button type="button" id="swap" class="btn btn-ghost !px-3 !py-2.5" aria-label="Swap origin and destination">&#8644;</button>
-            <div><label class="label" for="to">To</label><select id="to" class="field"></select></div>
-          </div>
-
-          <div class="mt-4">
-            <span class="label" id="modeLabel">Transport mode</span>
-            <div id="modeBtns" class="grid grid-cols-3 gap-2" role="group" aria-labelledby="modeLabel">
-              <button type="button" class="modebtn" data-mode="road" aria-pressed="false"></button>
-              <button type="button" class="modebtn" data-mode="sea" aria-pressed="false"></button>
-              <button type="button" class="modebtn" data-mode="air" aria-pressed="true"></button>
-            </div>
-          </div>
-
-          <div class="mt-4">
-            <label class="label" for="weight">Weight (kg)</label>
-            <input id="weight" class="field" type="number" min="1" max="50000" value="100" inputmode="decimal">
-          </div>
-
-          <div class="mt-5 flex items-end justify-between gap-4 border-t border-dashed border-ink/25 pt-4">
-            <div>
-              <p class="text-xs font-semibold text-ink/60">Estimated price</p>
-              <p id="qPrice" class="font-display text-4xl font-extrabold leading-tight">—</p>
-            </div>
-            <div class="text-right text-sm">
-              <p id="qDays" class="font-semibold">—</p>
-              <p id="qDist" class="text-ink/60">—</p>
-            </div>
-          </div>
-          <p id="qNote" class="mt-2 min-h-[1.25rem] text-sm text-ink/70" role="status"></p>
-          <button type="button" id="bookBtn" class="btn mt-3 w-full">Book this shipment</button>
-        </form>
-
-        <div class="overflow-hidden rounded-3xl bg-[#0E2F4A]">
-          <svg id="chart" class="block w-full" viewBox="0 0 1000 430" role="img" aria-label="Chart of the selected shipping route"></svg>
-        </div>
-      </div>
-    </section>
-
-    <!-- Services -->
-    <section id="modes" class="mx-auto max-w-7xl px-5 py-16">
-      <h2 class="max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl">Pick the lane that fits the cargo</h2>
-      <div class="mt-10 divide-y divide-ink/15 border-y border-ink/15">
-        <article class="lane grid gap-6 py-8 md:grid-cols-[200px_1fr_1.1fr]" style="--c:var(--air)">
-          <div><span class="text-air" data-icon="air"></span><h3 class="mt-2 text-3xl font-extrabold">Air</h3></div>
-          <p class="max-w-md text-ink/80">Fastest between any two cities we serve. For urgent orders, perishables, samples and high-value goods that cannot sit on a ship.</p>
-          <dl class="grid grid-cols-3 gap-4 text-sm">
-            <div><dt class="text-ink/60">Typical transit</dt><dd class="font-semibold">1 to 4 days</dd></div>
-            <div><dt class="text-ink/60">Best for</dt><dd class="font-semibold">Urgent, fragile</dd></div>
-            <div><dt class="text-ink/60">Pricing</dt><dd class="font-semibold">Per kg</dd></div>
-          </dl>
-        </article>
-        <article class="lane grid gap-6 py-8 md:grid-cols-[200px_1fr_1.1fr]" style="--c:var(--sea)">
-          <div><span class="text-sea" data-icon="sea"></span><h3 class="mt-2 text-3xl font-extrabold">Sea</h3></div>
-          <p class="max-w-md text-ink/80">The lowest cost per kilo for heavy and bulky freight. Pallets, part-loads and full containers between ports on every continent we serve.</p>
-          <dl class="grid grid-cols-3 gap-4 text-sm">
-            <div><dt class="text-ink/60">Typical transit</dt><dd class="font-semibold">14 to 40 days</dd></div>
-            <div><dt class="text-ink/60">Best for</dt><dd class="font-semibold">Heavy, bulk</dd></div>
-            <div><dt class="text-ink/60">Pricing</dt><dd class="font-semibold">Per kg, per lane</dd></div>
-          </dl>
-        </article>
-        <article class="lane grid gap-6 py-8 md:grid-cols-[200px_1fr_1.1fr]" style="--c:var(--road)">
-          <div><span class="text-road" data-icon="road"></span><h3 class="mt-2 text-3xl font-extrabold">Road</h3></div>
-          <p class="max-w-md text-ink/80">Door-to-door trucking within a landmass, and the first and last mile for every sea and air shipment.</p>
-          <dl class="grid grid-cols-3 gap-4 text-sm">
-            <div><dt class="text-ink/60">Typical transit</dt><dd class="font-semibold">1 to 9 days</dd></div>
-            <div><dt class="text-ink/60">Best for</dt><dd class="font-semibold">Regional, pallets</dd></div>
-            <div><dt class="text-ink/60">Pricing</dt><dd class="font-semibold">Per kg</dd></div>
-          </dl>
-        </article>
-      </div>
-    </section>
-
-    <!-- Tracking -->
-    <section id="track" class="border-y border-ink/10 bg-white">
-      <div class="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[360px_1fr]">
-        <div>
-          <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Track a shipment</h2>
-          <p class="mt-3 text-ink/75">Enter the tracking ID from your booking confirmation.</p>
-          <form id="trackForm" class="mt-6 flex gap-2">
-            <label class="sr-only" for="trackId">Tracking ID</label>
-            <input id="trackId" class="field uppercase" placeholder="LGT-8KQ2M7XA" required autocomplete="off">
-            <button class="btn" type="submit">Track</button>
-          </form>
-          <p id="demoHint" hidden class="mt-3 text-sm text-ink/70">Demo shipments: <button type="button" class="underline" data-demo="LGT-DEMO0001">LGT-DEMO0001</button>, <button type="button" class="underline" data-demo="LGT-DEMO0002">LGT-DEMO0002</button></p>
-        </div>
-        <div id="trackResult" aria-live="polite" class="grid min-h-[280px] place-items-center rounded-2xl border border-dashed border-ink/25 p-6 text-center text-ink/60">
-          The route and every handover appear here.
-        </div>
-      </div>
-    </section>
-
-    <!-- Booking -->
-    <section id="book" class="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[360px_1fr]">
-      <div>
-        <h2 class="text-3xl font-extrabold tracking-tight sm:text-4xl">Book your shipment</h2>
-        <p class="mt-3 text-ink/75">Tell us who is sending and who is receiving. We confirm the pickup by email.</p>
-        <div id="bookSummary" class="mt-6 rounded-2xl border border-ink/15 bg-white p-4 text-sm"></div>
-        <a href="#quote" class="mt-3 inline-block text-sm underline">Change route, mode or weight</a>
-      </div>
-      <div>
-        <form id="bookForm" class="grid gap-4 rounded-3xl border border-ink/10 bg-white p-5 sm:grid-cols-2 sm:p-6">
-          <div><label class="label" for="senderName">Sender name</label><input id="senderName" class="field" required maxlength="120"></div>
-          <div><label class="label" for="senderEmail">Sender email</label><input id="senderEmail" type="email" class="field" required maxlength="160"></div>
-          <div><label class="label" for="receiverName">Receiver name</label><input id="receiverName" class="field" required maxlength="120"></div>
-          <div><label class="label" for="receiverPhone">Receiver phone</label><input id="receiverPhone" type="tel" class="field" required maxlength="40"></div>
-          <div class="sm:col-span-2">
-            <label class="label" for="cargoType">Cargo type</label>
-            <select id="cargoType" class="field">
-              <option>General goods</option><option>Electronics</option><option>Perishables</option><option>Documents</option><option>Machinery</option><option>Textiles</option><option>Other</option>
-            </select>
-          </div>
-          <div class="sm:col-span-2"><label class="label" for="description">What is being shipped?</label><textarea id="description" class="field" rows="3" required maxlength="900" placeholder="e.g. 4 cartons of solar panels, 25 kg each"></textarea></div>
-          <p id="bookError" class="text-sm font-medium text-red-700 sm:col-span-2" role="alert"></p>
-          <button class="btn sm:col-span-2" type="submit" id="bookSubmit">Confirm booking</button>
-        </form>
-        <div id="bookDone" hidden class="rounded-3xl border border-ink/10 bg-white p-6 sm:p-8" aria-live="polite"></div>
-      </div>
-    </section>
-  </main>
-
-  <footer class="border-t border-ink/15">
-    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-8 text-sm text-ink/70">
-      <p>&copy; <span id="year"></span> Longitude Freight. Estimates are indicative; final price is confirmed at pickup.</p>
-      <a href="admin.html" class="underline">Staff sign in</a>
-    </div>
-  </footer>
-
-  <script src="https://cdn.jsdelivr.net/npm/appwrite@16.0.2"></script>
-  <script src="js/config.js"></script>
-  <script src="js/data.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/app.js"></script>
-</body>
-</html>
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Longitude — International freight by road, sea and air</title><meta name="description" content="Quote, book and track international freight by road, sea and air.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{ink:'#12263A',chart:'#E6ECEF',sea:'#0E7C86',air:'#F0562B',road:'#B98700'},fontFamily:{display:['"Bricolage Grotesque"','system-ui','sans-serif']}}}};</script>
+<link rel="stylesheet" href="css/styles.css"></head><body>
+<section class="ph relative min-h-[88vh] bg-ink text-white"><img src="images/hero.jpg" alt="Container ship loaded with containers at a port" class="absolute inset-0 h-full w-full object-cover" onerror="this.remove()">
+<div class="absolute inset-0 bg-gradient-to-r from-ink/95 via-ink/70 to-ink/20"></div>
+<header class="absolute inset-x-0 top-0 z-20 mx-auto flex max-w-7xl items-center justify-between px-5 py-5 text-white">
+    <a href="index.html" class="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="13" stroke="currentColor" stroke-width="2"/><ellipse cx="15" cy="15" rx="5.5" ry="13" stroke="currentColor" stroke-width="2"/><path d="M2 15h26" stroke="#F0562B" stroke-width="2"/></svg>Longitude</a>
+    <nav class="flex items-center gap-4 text-sm font-medium sm:gap-6" aria-label="Main">
+      <a href="air.html" class="hidden hover:underline md:inline">Air</a><a href="sea.html" class="hidden hover:underline md:inline">Sea</a><a href="road.html" class="hidden hover:underline md:inline">Road</a>
+      <a href="book.html#track" class="hover:underline">Track</a>
+      <a href="book.html#quote" class="btn !px-4 !py-2 text-sm !bg-white !text-ink">Get a quote</a>
+    </nav></header>
+<div class="relative mx-auto flex min-h-[88vh] max-w-7xl flex-col justify-center px-5 pb-16 pt-28">
+<h1 class="max-w-3xl text-5xl font-extrabold leading-[0.97] tracking-tight sm:text-7xl">We move your goods across the world and show you where they are.</h1>
+<p class="mt-6 max-w-xl text-lg text-white/85">Longitude is an international freight company. Ship containers by sea, urgent cargo by air and pallets by road to 18 cities, with one tracking ID from pickup to delivery.</p>
+<div class="mt-8 flex flex-wrap gap-3"><a href="book.html#quote" class="btn !bg-air">Get a price</a><a href="#services" class="btn btn-ghost !border-white/50 !text-white hover:!bg-white/10">See our services</a></div>
+<form id="tf" class="mt-10 flex max-w-md gap-2 rounded-2xl bg-white/10 p-2 backdrop-blur"><label class="sr-only" for="tid">Tracking ID</label><input id="tid" class="field uppercase" placeholder="Track: LGT-8KQ2M7XA" required><button class="btn !bg-white !text-ink" type="submit">Track</button></form>
+</div></section>
+<main>
+<section class="mx-auto max-w-7xl px-5 py-16"><h2 class="max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl">How shipping with Longitude works</h2>
+<ol class="mt-10 grid gap-8 md:grid-cols-3">
+<li class="border-t-4 border-ink pt-4"><h3 class="text-xl font-extrabold">1. Get a price</h3><p class="mt-2 text-ink/75">Pick two cities, a transport mode and the weight. You see the price and transit time straight away.</p></li>
+<li class="border-t-4 border-ink pt-4"><h3 class="text-xl font-extrabold">2. Book online</h3><p class="mt-2 text-ink/75">Tell us who sends and who receives. We confirm pickup by email and give you a tracking ID.</p></li>
+<li class="border-t-4 border-ink pt-4"><h3 class="text-xl font-extrabold">3. Follow it home</h3><p class="mt-2 text-ink/75">Every handover is logged on a route map until the receiver signs for the goods.</p></li></ol></section>
+<section id="services" class="mx-auto max-w-7xl px-5 pb-16"><h2 class="max-w-2xl text-3xl font-extrabold tracking-tight sm:text-5xl">Pick the lane that fits the cargo</h2>
+<div class="mt-8 grid gap-4 md:grid-cols-3">
+<a href="air.html" class="group relative block overflow-hidden rounded-3xl ph md:col-span-2" style="--c:#F0562B">
+  <img src="images/air.png" alt="Air freight" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" onerror="this.remove()">
+  <div class="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent"></div>
+  <div class="relative flex h-full min-h-[300px] flex-col justify-end p-6 text-white"><span class="mb-2 h-1 w-12 rounded" style="background:#F0562B"></span>
+  <h3 class="text-3xl font-extrabold">Air</h3><p class="mt-1 max-w-sm text-white/85">Cargo planes between major airports in 1 to 4 days.</p><span class="mt-3 text-sm font-semibold underline">See air freight</span></div></a>
+<a href="sea.html" class="group relative block overflow-hidden rounded-3xl ph " style="--c:#0E7C86">
+  <img src="images/sea.jpg" alt="Sea freight" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" onerror="this.remove()">
+  <div class="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent"></div>
+  <div class="relative flex h-full min-h-[300px] flex-col justify-end p-6 text-white"><span class="mb-2 h-1 w-12 rounded" style="background:#0E7C86"></span>
+  <h3 class="text-3xl font-extrabold">Sea</h3><p class="mt-1 max-w-sm text-white/85">Container ships for heavy and bulky freight.</p><span class="mt-3 text-sm font-semibold underline">See sea freight</span></div></a>
+<a href="road.html" class="group relative block overflow-hidden rounded-3xl ph " style="--c:#B98700">
+  <img src="images/road.jpg" alt="Road freight" class="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" onerror="this.remove()">
+  <div class="absolute inset-0 bg-gradient-to-t from-ink/90 via-ink/30 to-transparent"></div>
+  <div class="relative flex h-full min-h-[300px] flex-col justify-end p-6 text-white"><span class="mb-2 h-1 w-12 rounded" style="background:#B98700"></span>
+  <h3 class="text-3xl font-extrabold">Road</h3><p class="mt-1 max-w-sm text-white/85">Trucks for regional freight and first and last mile.</p><span class="mt-3 text-sm font-semibold underline">See road freight</span></div></a>
+<div class="ph relative overflow-hidden rounded-3xl md:col-span-2" style="--c:#0E7C86"><img src="images/containers.jpg" alt="Stacked shipping containers" class="absolute inset-0 h-full w-full object-cover" onerror="this.remove()"><div class="absolute inset-0 bg-ink/70"></div>
+<div class="relative flex min-h-[300px] flex-col justify-end p-6 text-white"><h3 class="text-3xl font-extrabold">One carton or a full container</h3><p class="mt-1 max-w-md text-white/85">Part-loads, pallets and 20ft containers, packed, sealed and cleared through customs by our team.</p><a href="book.html#quote" class="mt-4 inline-block text-sm font-semibold underline">Price your cargo</a></div></div></div></section>
+<section class="border-y border-ink/10 bg-white"><div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-5 px-5 py-12"><div><h2 class="text-3xl font-extrabold tracking-tight">Ready to ship?</h2><p class="mt-1 text-ink/75">Your price takes about ten seconds.</p></div><a href="book.html#quote" class="btn">Get a quote</a></div></section>
+</main><footer class="border-t border-ink/15"><div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-8 text-sm text-ink/70">
+  <p>&copy; <span id="year"></span> Longitude Freight. Estimates are indicative; final price is confirmed at pickup.</p>
+  <a href="admin.html" class="underline">Staff sign in</a></div></footer><script>document.getElementById('year').textContent=new Date().getFullYear()</script>
+<script>document.getElementById('tf').addEventListener('submit',e=>{e.preventDefault();location.href='book.html#track='+encodeURIComponent(document.getElementById('tid').value.trim())})</script></body></html>

@@ -13,25 +13,14 @@
 
   if (API.demo) $('#demoBanner').hidden = false;
 
-  /* ---------- auth ---------- */
+  /* ---------- auth: only signed-in admins may see this page ---------- */
   async function boot() {
     const u = await API.currentUser();
-    u ? enter(u) : ($('#login').hidden = false);
-  }
-  async function enter(u) {
-    $('#login').hidden = true; $('#app').hidden = false;
+    if (!u) { location.replace('admin.html'); return; }
     $('#who').textContent = u.email || '';
     await load();
   }
-  $('#loginForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const btn = $('#loginBtn'), err = $('#loginError');
-    err.textContent = ''; btn.disabled = true; btn.textContent = 'Signing in…';
-    try { enter(await API.login($('#email').value.trim(), $('#password').value)); }
-    catch (ex) { err.textContent = ex.message || 'Sign in failed. Check your email and password.'; }
-    finally { btn.disabled = false; btn.textContent = 'Sign in'; }
-  });
-  $('#logout').addEventListener('click', async () => { await API.logout(); location.reload(); });
+  $('#logout').addEventListener('click', async () => { await API.logout(); location.replace('admin.html'); });
 
   /* ---------- list ---------- */
   async function load() {
@@ -47,6 +36,9 @@
   function render() {
     $('#filters').innerHTML = FILTERS.map(([id, label, fn]) =>
       `<button type="button" data-f="${id}" class="btn ${filter === id ? '' : 'btn-ghost'} !px-4 !py-1.5 text-sm">${label} (${ships.filter(fn).length})</button>`).join('');
+    const n = f => ships.filter(f).length;
+    $('#stats').innerHTML = [['Total', n(() => true)], ['Active', n(FILTERS[1][2])], ['Delayed', n(FILTERS[2][2])], ['Delivered', n(FILTERS[3][2])]].map(([t, v]) =>
+      `<div class="rounded-2xl border border-ink/10 bg-white p-4"><p class="text-sm text-ink/60">${t}</p><p class="font-display text-3xl font-extrabold">${v}</p></div>`).join('');
     const rows = visible();
     $('#empty').hidden = rows.length > 0;
     $('#rows').innerHTML = rows.map(s => `
@@ -138,6 +130,33 @@
       catch (ex) { console.error(ex); alert('Could not delete this shipment.'); }
     };
   }
+
+  /* ---------- new shipment ---------- */
+  const modal = $('#newModal'), nForm = $('#newForm'), nDone = $('#nDone');
+  const opts = L.CITIES.map(c => `<option value="${c.id}">${L.esc(c.name)}, ${L.esc(c.country)}</option>`).join('');
+  $('#nFrom').innerHTML = opts; $('#nTo').innerHTML = opts; $('#nFrom').value = 'lagos'; $('#nTo').value = 'london';
+  const openNew = () => { nForm.hidden = false; nDone.hidden = true; nForm.reset(); $('#nFrom').value = 'lagos'; $('#nTo').value = 'london'; modal.hidden = false; $('#nFrom').focus(); };
+  const closeNew = () => { modal.hidden = true; };
+  $('#newBtn').onclick = openNew; $('#newBtn2').onclick = openNew; $('#newClose').onclick = closeNew; $('#nOk').onclick = closeNew; $('#nAgain').onclick = openNew;
+  nForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const err = $('#nErr'), btn = $('#nBtn'); err.textContent = '';
+    const from = $('#nFrom').value, to = $('#nTo').value, mode = $('#nMode').value, weight = parseFloat($('#nWeight').value);
+    const q = L.quote({ from, to, mode, weight });
+    if (q.error) { err.textContent = q.error; return; }
+    const a = L.CITY[from], b = L.CITY[to];
+    btn.disabled = true; btn.textContent = 'Creating…';
+    try {
+      const s = await API.createShipment({ mode, origin: a.id, destination: b.id, originName: a.name, destName: b.name, weightKg: weight, priceUsd: q.price, etaDays: q.days,
+        cargoType: $('#nCargo').value, description: $('#nDesc').value.trim(), senderName: $('#nSender').value.trim(), senderEmail: $('#nSenderEmail').value.trim(),
+        receiverName: $('#nReceiver').value.trim(), receiverPhone: $('#nPhone').value.trim() });
+      nForm.hidden = true; nDone.hidden = false; $('#nId').textContent = s.trackingId;
+      $('#nCopy').onclick = async ev => { try { await navigator.clipboard.writeText(s.trackingId); ev.target.textContent = 'Copied'; } catch (x) { ev.target.textContent = 'Copy failed'; } };
+      load();
+    } catch (ex) { console.error(ex); err.textContent = 'Could not save the shipment. Check your connection and Appwrite permissions.'; }
+    finally { btn.disabled = false; btn.textContent = 'Create shipment and generate ID'; }
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !modal.hidden) closeNew(); });
 
   boot();
 })();

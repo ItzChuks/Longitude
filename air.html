@@ -1,0 +1,16 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Air freight — Longitude</title><meta name="description" content="Quote, book and track international freight by road, sea and air.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>tailwind.config={theme:{extend:{colors:{ink:'#12263A',chart:'#E6ECEF',sea:'#0E7C86',air:'#F0562B',road:'#B98700'},fontFamily:{display:['"Bricolage Grotesque"','system-ui','sans-serif']}}}};</script>
+<link rel="stylesheet" href="css/styles.css"></head><body data-mode="air"><header class="mx-auto flex max-w-7xl items-center justify-between px-5 py-5 text-ink">
+    <a href="index.html" class="flex items-center gap-2 font-display text-xl font-extrabold tracking-tight">
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" aria-hidden="true"><circle cx="15" cy="15" r="13" stroke="currentColor" stroke-width="2"/><ellipse cx="15" cy="15" rx="5.5" ry="13" stroke="currentColor" stroke-width="2"/><path d="M2 15h26" stroke="#F0562B" stroke-width="2"/></svg>Longitude</a>
+    <nav class="flex items-center gap-4 text-sm font-medium sm:gap-6" aria-label="Main">
+      <a href="air.html" class="hidden hover:underline md:inline">Air</a><a href="sea.html" class="hidden hover:underline md:inline">Sea</a><a href="road.html" class="hidden hover:underline md:inline">Road</a>
+      <a href="book.html#track" class="hover:underline">Track</a>
+      <a href="book.html#quote" class="btn !px-4 !py-2 text-sm ">Get a quote</a>
+    </nav></header><main id="svc"></main><footer class="border-t border-ink/15"><div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-5 py-8 text-sm text-ink/70">
+  <p>&copy; <span id="year"></span> Longitude Freight. Estimates are indicative; final price is confirmed at pickup.</p>
+  <a href="admin.html" class="underline">Staff sign in</a></div></footer><script>document.getElementById('year').textContent=new Date().getFullYear()</script><script src="js/data.js"></script><script src="js/service.js"></script></body></html>

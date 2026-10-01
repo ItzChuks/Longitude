@@ -1,0 +1,43 @@
+<!DOCTYPE html><html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Dashboard — Longitude Ops</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      colors: { ink: '#12263A', chart: '#E6ECEF', sea: '#0E7C86', air: '#F0562B', road: '#B98700' },
+      fontFamily: { display: ['"Bricolage Grotesque"', 'system-ui', 'sans-serif'] }
+    } } };
+  </script>
+  <link rel="stylesheet" href="css/styles.css">
+</head><body><div id="demoBanner" hidden class="bg-ink px-5 py-2 text-center text-sm text-white">Demo mode: sign in with any email and password. Add your Appwrite project ID in <code>js/config.js</code> to go live.</div>
+<div class="lg:grid lg:grid-cols-[240px_1fr]">
+<aside class="side bg-ink p-4 text-white lg:sticky lg:top-0 lg:h-screen"><div class="flex items-center justify-between lg:block"><p class="px-2 py-2 font-display text-xl font-extrabold">Longitude Ops</p>
+<nav class="flex gap-1 lg:mt-6 lg:flex-col" aria-label="Dashboard"><a href="dashboard.html" aria-current="page">Shipments</a><button id="newBtn" type="button">New shipment</button><a href="index.html" target="_blank">View website</a><button id="logout" type="button">Sign out</button></nav></div></aside>
+<main class="min-w-0 px-5 py-8 lg:px-10"><div class="flex flex-wrap items-center justify-between gap-3"><div><h1 class="text-3xl font-extrabold">Shipments</h1><p class="text-sm text-ink/70">Signed in as <span id="who"></span></p></div><button id="newBtn2" class="btn" type="button">+ New shipment</button></div>
+<div id="stats" class="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4"></div>
+<div class="mt-6 flex flex-wrap items-center justify-between gap-3"><div id="filters" class="flex flex-wrap gap-2" role="group" aria-label="Filter shipments"></div>
+<div class="flex gap-2"><label class="sr-only" for="search">Search</label><input id="search" class="field !w-60" placeholder="Search ID, name or city"><button id="refresh" class="btn btn-ghost" type="button">Refresh</button></div></div>
+<p id="listError" class="mt-4 text-sm font-medium text-red-700" role="alert"></p>
+<div class="mt-4 overflow-x-auto rounded-2xl border border-ink/10 bg-white"><table class="w-full min-w-[760px] text-left text-sm"><thead class="border-b border-ink/10 bg-chart/60 text-ink/60"><tr><th class="px-4 py-3">Tracking ID</th><th class="px-4 py-3">Route</th><th class="px-4 py-3">Mode</th><th class="px-4 py-3">Weight</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Booked</th></tr></thead><tbody id="rows" class="divide-y divide-ink/10"></tbody></table>
+<p id="empty" hidden class="px-4 py-10 text-center text-ink/60">No shipments yet. Use New shipment to add goods and generate a tracking ID.</p></div></main></div>
+
+<div id="newModal" class="modal" hidden><div class="w-full max-w-2xl rounded-3xl bg-white p-6 sm:p-8">
+<form id="newForm" class="grid gap-4 sm:grid-cols-2"><div class="flex items-center justify-between sm:col-span-2"><h2 class="text-2xl font-extrabold">New shipment</h2><button type="button" id="newClose" class="btn btn-ghost !px-3 !py-1.5 text-sm">Close</button></div>
+<div><label class="label" for="nFrom">From</label><select id="nFrom" class="field"></select></div><div><label class="label" for="nTo">To</label><select id="nTo" class="field"></select></div>
+<div><label class="label" for="nMode">Mode</label><select id="nMode" class="field"><option value="air">Air</option><option value="sea">Sea</option><option value="road">Road</option></select></div>
+<div><label class="label" for="nWeight">Weight (kg)</label><input id="nWeight" type="number" min="1" value="100" class="field" required></div>
+<div><label class="label" for="nSender">Sender name</label><input id="nSender" class="field" required></div><div><label class="label" for="nSenderEmail">Sender email</label><input id="nSenderEmail" type="email" class="field" required></div>
+<div><label class="label" for="nReceiver">Receiver name</label><input id="nReceiver" class="field" required></div><div><label class="label" for="nPhone">Receiver phone</label><input id="nPhone" class="field" required></div>
+<div><label class="label" for="nCargo">Cargo type</label><select id="nCargo" class="field"><option>General goods</option><option>Electronics</option><option>Perishables</option><option>Documents</option><option>Machinery</option><option>Textiles</option><option>Other</option></select></div>
+<div><label class="label" for="nDesc">Goods description</label><input id="nDesc" class="field" required maxlength="900" placeholder="e.g. 4 cartons of solar panels"></div>
+<p id="nErr" class="text-sm font-medium text-red-700 sm:col-span-2" role="alert"></p><button class="btn sm:col-span-2" id="nBtn" type="submit">Create shipment and generate ID</button></form>
+<div id="nDone" hidden><h2 class="text-2xl font-extrabold">Shipment created</h2><p class="mt-2 text-ink/75">Give this tracking ID to the customer.</p><p id="nId" class="mt-4 rounded-xl border border-dashed border-ink/30 bg-chart px-4 py-4 font-display text-3xl font-extrabold tracking-wide"></p>
+<div class="mt-5 flex flex-wrap gap-3"><button id="nCopy" class="btn" type="button">Copy ID</button><button id="nAgain" class="btn btn-ghost" type="button">Add another</button><button id="nOk" class="btn btn-ghost" type="button">Done</button></div></div></div></div>
+
+<div id="scrim" class="scrim" hidden></div><aside id="drawer" class="drawer" aria-label="Shipment details" aria-hidden="true"></aside>
+<script src="https://cdn.jsdelivr.net/npm/appwrite@16.0.2"></script><script src="js/config.js"></script><script src="js/data.js"></script><script src="js/api.js"></script><script src="js/admin.js"></script></body></html>
